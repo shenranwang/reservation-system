@@ -1,6 +1,6 @@
 #include "projekti.c"
 
 int main() {
-    parse_command();
+    run_program();
     return 0;
 }

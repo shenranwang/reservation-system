@@ -47,3 +47,13 @@ Jokaisen komennon jälkeen on annettava tuloste, joka selkeästi kertoo onnistui
 Voit olettaa maksimipituuden käyttäjän syöteriville, kunhan se on riittävän pitkä. Esimerkiksi 80 merkkiä on riittävä.
 
 Selkeästi virheellisten syötekomentojen jälkeen pitää antaa virheilmoitus, eikä ohjelma ainakaan saa kaatua. Voit kuitenkin olettaa että nimet ja vastaavat syötemerkkijonot eivät sisällä välimerkkejä (eli välimerkit toimivat pelkästään kenttien erottimena).
+
+# main.c
+```
+#include "projekti.c"
+
+int main() {
+    run_program();
+    return 0;
+}
+```
