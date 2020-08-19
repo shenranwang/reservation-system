@@ -5,39 +5,115 @@
 #include "projekti.h"
 
 #define MAX_LENGTH 100
+#define MAX_DESC 50
 
-void deallocate_reservation(Reservation *reservation)
+Reservation *create_reservation()
 {
-    free(reservation->description);
-    free(reservation);
+    Reservation *reservation = malloc(sizeof(Reservation));
+    if (reservation != NULL)
+    {
+        reservation->description = malloc(sizeof(char) * (MAX_DESC + 1));
+        reservation->next = NULL;
+    }
+    return reservation;
 }
 
-Reservation *allocate_reservation(Reservation *reservations)
+void add_reservation(int n_args, char *token, Reservation *reservations) // TODO: Fix with invalid n_args
 {
-    reservations = realloc(reservations, sizeof(reservations) + sizeof(Reservation));
-    Reservation *new_reservation = reservations;
-    while (!new_reservation)
-    {
-        new_reservation++;
-    }
-    new_reservation->description = malloc(sizeof(char) * 50);
-    return reservations;
-}
-
-Reservation *add_reservation(int n_args, char *token, Reservation *reservations)
-{
-    token = strtok(NULL, " ");
-    reservations = allocate_reservation(reservations);
-    Reservation *new_reservation = reservations;
-    while (!new_reservation)
-    {
-        new_reservation++;
-    }
-    new_reservation->description = token;
-
+    char desc[MAX_DESC + 1];
     int date[3];
-    int i = 0;
+    token = strtok(NULL, " ");
+    strcpy(desc, token);
 
+    Reservation *new_reservation = create_reservation();
+
+    int i = 0;
+    do
+    {
+        token = strtok(NULL, " ");
+        sscanf(token, " %d", &date[i++]);
+    } while (token != NULL && i < 3);
+
+    Reservation *prev = reservations;
+    Reservation *temp = reservations->next;
+    while (temp != NULL)
+    {
+        if (date[0] < temp->month || (date[0] == temp->month && date[1] < temp->day) ||
+            (date[0] == temp->month && date[1] == temp->day && date[2] <= temp->hour))
+        {
+            if (date[0] == temp->month && date[1] == temp->day && date[2] == temp->hour)
+            {
+                free(new_reservation->description);
+                free(new_reservation);
+                printf("Date already reserved. %02d.%02d. klo %02d\n", date[0], date[1], date[2]);
+                return;
+            }
+            break;
+        }
+        prev = temp;
+        temp = temp->next;
+    }
+
+    // check that there is exactly four arguments (1 str, 3 int)
+    token = strtok(NULL, " ");
+    if (token != NULL || i != 3)
+    {
+        free(new_reservation->description);
+        free(new_reservation);
+        printf("Invalid number of arguments, %d required.\n", n_args);
+        return;
+    }
+
+    // check that date is valid
+    if (!(date[0] >= 1 && date[0] <= 12 &&
+          date[1] >= 1 && date[1] <= 31 &&
+          date[2] >= 1 && date[2] <= 24))
+    {
+        free(new_reservation->description);
+        free(new_reservation);
+        printf("Invalid date for reservation: %02d.%02d. klo %02d\n", date[0], date[1], date[2]);
+        return;
+    }
+
+    prev->next = new_reservation;
+    strcpy(new_reservation->description, desc);
+    new_reservation->month = date[0];
+    new_reservation->day = date[1];
+    new_reservation->hour = date[2];
+    if (prev == temp)
+    {
+        new_reservation->next = NULL;
+    }
+    else
+    {
+        new_reservation->next = temp;
+    }
+
+    printf("Added reservation: A %s %d %d %d\n", new_reservation->description, new_reservation->month, new_reservation->day, new_reservation->hour);
+}
+
+void delete_reservation_list(Reservation *reservations)
+{
+    while (reservations->next != NULL)
+    {
+        delete_reservation_list(reservations->next);
+        reservations->next = NULL;
+    }
+    free(reservations->description);
+    free(reservations);
+}
+
+void delete_reservation(int n_args, char *token, Reservation *reservations)
+{
+    int date[3];
+    Reservation *curr = reservations->next;
+    if (curr == NULL)
+    {
+        printf("Empty list.\n");
+        return;
+    }
+
+    int i = 0;
     do
     {
         token = strtok(NULL, " ");
@@ -48,46 +124,68 @@ Reservation *add_reservation(int n_args, char *token, Reservation *reservations)
     token = strtok(NULL, " ");
     if (token != NULL || i != 3)
     {
-        printf("Invalid number of arguments, %d required.", n_args);
-        deallocate_reservation(new_reservation);
+        curr->next = NULL;
+        printf("Invalid number of arguments, %d required.\n", n_args);
     }
 
-    new_reservation->month = date[0];
-    new_reservation->day = date[1];
-    new_reservation->hour = date[2];
-
-    printf("Added reservation: A %s %d %d %d\n", new_reservation->description, new_reservation->month, new_reservation->day, new_reservation->hour);
-
-    return reservations;
-}
-
-void quit(Reservation *reservations) // TODO: Implement
-{
-    while (reservations)
+    int found = 0;
+    Reservation *prev = reservations;
+    while (curr != NULL)
     {
-        deallocate_reservation(reservations++);
+        if (curr->month == date[0] && curr->day == date[1] && curr->hour == date[2])
+        {
+            found = 1;
+            break;
+        }
+        prev = curr;
+        curr = curr->next;
     }
+
+    if (!found)
+    {
+        printf("Reservation not found.\n");
+        return;
+    }
+
+    prev->next = curr->next;
+    free(curr->description);
+    free(curr);
+    printf("Deleted reservation: D %d %d %d\n", date[0], date[1], date[2]);
 }
 
-Reservation *perform_command(char *command, Reservation *reservations)
+void print_reservations(Reservation *reservations)
+{
+    Reservation *temp = reservations;
+    if (temp->next == NULL)
+    {
+        return;
+    }
+    for (temp = temp->next; temp->next != NULL; temp = temp->next)
+    {
+        printf("%s %02d.%02d. klo %02d\n", temp->description, temp->month, temp->day, temp->hour);
+    }
+    printf("%s %02d.%02d. klo %02d\n", temp->description, temp->month, temp->day, temp->hour);
+}
+
+void perform_command(char *command, Reservation *reservations)
 {
     char *token;
     token = strtok(command, " ");
     if (!(token[1] == 0x00 || token[1] == '\n'))
     {
         printf("Invalid command!\n");
-        return reservations;
+        return;
     }
     switch (token[0])
     {
     case 'A':
-        reservations = add_reservation(4, token, reservations);
+        add_reservation(4, token, reservations);
         break;
     case 'D':
-        printf("Delete reservation!\n");
+        delete_reservation(3, token, reservations);
         break;
     case 'L':
-        printf("Print calendar!\n");
+        print_reservations(reservations);
         break;
     case 'W':
         printf("Save calendar!\n");
@@ -96,23 +194,22 @@ Reservation *perform_command(char *command, Reservation *reservations)
         printf("Open calendar!\n");
         break;
     case 'Q':
-        printf("Quit program!\n");
-        quit(reservations);
+        delete_reservation_list(reservations);
+        printf("Memory succesfully freed, quitting program!\n");
         break;
     default:
         printf("Invalid command!\n");
         break;
     }
-    return reservations;
 }
 
 void run_program()
 {
     char command[MAX_LENGTH];
-    Reservation *reservations = malloc(sizeof(Reservation));
+    Reservation *reservations = create_reservation();
     do
     {
         fgets(command, MAX_LENGTH, stdin);
-        reservations = perform_command(command, reservations);
+        perform_command(command, reservations);
     } while (!(command[0] == 'Q' && command[1] == '\n')); // TODO: fix it
 }
