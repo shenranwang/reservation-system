@@ -1,0 +1,9 @@
+A Hiustenleikkuu 3 26 14
+A Ohjelmointiluento 3 27 12
+A Ohjelmointilaskarit 3 27 14
+A Matikanluento 3 26 14
+D 3 26 14
+A Matikanluento 3 26 14
+L
+W kalenteri
+Q

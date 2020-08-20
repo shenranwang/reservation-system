@@ -188,7 +188,7 @@ void print_reservations(Reservation *reservations)
 void save_reservations(int n_args, char *token, Reservation *reservations)
 {
     char filename[MAX_DESC + 1];
-    token = strtok(NULL, "\n");
+    token = strtok(NULL, " \n");
     if (token == NULL)
     {
         printf("Invalid number of arguments, %d required.\n", n_args);
@@ -202,6 +202,11 @@ void save_reservations(int n_args, char *token, Reservation *reservations)
         return;
     }
     FILE *fp = fopen(filename, "w");
+    if (!fp)
+    {
+        printf("Error opening file %s.\n", filename);
+        return;
+    }
     Reservation *temp = reservations->next;
     while (temp != NULL)
     {
@@ -216,7 +221,7 @@ void open_reservations(int n_args, char *token, Reservation *reservations)
 {
     char filename[MAX_DESC + 1];
     char command[MAX_LENGTH];
-    token = strtok(NULL, "\n");
+    token = strtok(NULL, " \n");
     if (token == NULL)
     {
         printf("Invalid number of arguments, %d required.\n", n_args);
@@ -230,7 +235,13 @@ void open_reservations(int n_args, char *token, Reservation *reservations)
         return;
     }
     FILE *fp = fopen(filename, "r");
+    if (!fp)
+    {
+        printf("Error opening file %s.\n", filename);
+        return;
+    }
     delete_reservation_list(reservations, 0);
+    printf("Deleted reservation list.\n");
     while (fgets(command, MAX_LENGTH, fp) != NULL)
     {
         token = strtok(command, " ");
@@ -277,13 +288,13 @@ void perform_command(char *command, Reservation *reservations)
     }
 }
 
-void run_program()
+void run_program(FILE *fp)
 {
     char command[MAX_LENGTH];
     Reservation *reservations = create_reservation();
     do
     {
-        fgets(command, MAX_LENGTH, stdin);
+        fgets(command, MAX_LENGTH, fp);
         perform_command(command, reservations);
     } while (!(command[0] == 'Q' && command[1] == '\n')); // TODO: fix it
 }
