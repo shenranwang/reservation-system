@@ -33,7 +33,7 @@ void add_reservation(int n_args, char *token, Reservation *reservations)
     do
     {
         token = strtok(NULL, " ");
-        if (token == NULL || token[0] == '\n')
+        if (token == NULL || token[0] == '\n') // check if too few arguments
         {
             printf("Invalid number of arguments, %d required.\n", n_args);
             return;
@@ -113,6 +113,8 @@ void delete_reservation_list(Reservation *reservations, int to_remove)
         delete_reservation_list(reservations->next, 1);
         reservations->next = NULL;
     }
+
+    // to_remove depends on whether function is called in the context of quitting program or loading file.
     if (to_remove)
     {
         free(reservations->description);
@@ -134,7 +136,7 @@ void delete_reservation(int n_args, char *token, Reservation *reservations)
     do
     {
         token = strtok(NULL, " ");
-        if (token == NULL)
+        if (token == NULL) // check if too few arguments
         {
             printf("Invalid number of arguments, %d required.\n", n_args);
             return;
@@ -158,7 +160,7 @@ void delete_reservation(int n_args, char *token, Reservation *reservations)
 
     int found = 0;
     Reservation *prev = reservations;
-    while (curr != NULL)
+    while (curr != NULL) // find reservation to delete
     {
         if (curr->month == date[0] && curr->day == date[1] && curr->hour == date[2])
         {
@@ -190,9 +192,9 @@ void print_reservations(Reservation *reservations)
     }
     for (temp = temp->next; temp->next != NULL; temp = temp->next)
     {
-        printf("%s %02d.%02d. klo %02d\n", temp->description, temp->month, temp->day, temp->hour);
+        printf("%s %02d.%02d. klo %02d\n", temp->description, temp->day, temp->month, temp->hour);
     }
-    printf("%s %02d.%02d. klo %02d\n", temp->description, temp->month, temp->day, temp->hour);
+    printf("%s %02d.%02d. klo %02d\n", temp->description, temp->day, temp->month, temp->hour);
 }
 
 void save_reservations(int n_args, char *token, Reservation *reservations)
@@ -296,6 +298,7 @@ void perform_command(char *command, Reservation *reservations)
         printf("Invalid command!\n");
         break;
     }
+    printf("\n");
 }
 
 void run_program(FILE *fp)
@@ -307,4 +310,10 @@ void run_program(FILE *fp)
         fgets(command, MAX_LENGTH, fp);
         perform_command(command, reservations);
     } while (!(command[0] == 'Q' && command[1] == '\n'));
+}
+
+int main()
+{
+    run_program(stdin);
+    return 0;
 }
