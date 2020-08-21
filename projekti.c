@@ -40,7 +40,7 @@ int get_date(int *date, char *token, int n_args)
 
     // check that there is exactly four arguments (1 str, 3 int)
     token = strtok(NULL, " ");
-    if (token != NULL || i != 3)
+    if ((token != NULL && token[0] != '\n') || i != 3)
     {
         printf("Invalid number of arguments, %d required.\n", n_args);
         return 0;
@@ -109,39 +109,37 @@ void add_reservation(int n_args, char *token, Reservation *reservations)
     printf("Added reservation: A %s %d %d %d\n", new_reservation->description, new_reservation->month, new_reservation->day, new_reservation->hour);
 }
 
-int find_reservation(Reservation *prev, Reservation *curr, int month, int day, int hour)
-{
-    if (curr == NULL)
-    {
-        printf("Empty list.\n");
-        return 0;
-    }
-    while (curr != NULL) // find reservation to delete
-    {
-        if (curr->month == month && curr->day == day && curr->hour == hour)
-        {
-            return 1;
-        }
-        prev = curr;
-        curr = curr->next;
-    }
-    printf("Reservation not found.\n");
-    return 0;
-}
-
 void delete_reservation(int n_args, char *token, Reservation *reservations)
 {
     int date[3];
+    Reservation *curr = reservations->next;
+    if (curr == NULL)
+    {
+        printf("Empty list.\n");
+        return;
+    }
 
     if (!get_date(date, token, n_args))
     {
         return;
     }
 
-    Reservation *curr = reservations->next;
+    int found = 0;
     Reservation *prev = reservations;
-    if (!find_reservation(prev, curr, date[0], date[1], date[2]))
+    while (curr != NULL) // find reservation to delete
     {
+        if (curr->month == date[0] && curr->day == date[1] && curr->hour == date[2])
+        {
+            found = 1;
+            break;
+        }
+        prev = curr;
+        curr = curr->next;
+    }
+
+    if (!found)
+    {
+        printf("Reservation not found.\n");
         return;
     }
 
@@ -191,7 +189,7 @@ int get_filename(char *dest, char *token, int n_args)
     }
     strcpy(dest, token);
     token = strtok(NULL, " ");
-    if (token != NULL)
+    if (token != NULL && token[0] != '\n')
     {
         printf("Invalid number of arguments, %d required.\n", n_args);
         return 0;
@@ -253,7 +251,7 @@ void perform_command(char *command, Reservation *reservations)
     token = strtok(command, " ");
     if (!(token[1] == 0x00 || token[1] == '\n'))
     {
-        printf("Invalid command!\n\n");
+        printf("Invalid command!\n");
         return;
     }
     switch (token[0])
