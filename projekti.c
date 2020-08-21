@@ -64,7 +64,14 @@ void add_reservation(int n_args, char *token, Reservation *reservations)
         return;
     }
 
-    Reservation *new_reservation = create_reservation();
+    // check that date is valid
+    if (!(date[0] >= 1 && date[0] <= 12 &&
+          date[1] >= 1 && date[1] <= 31 &&
+          date[2] >= 1 && date[2] <= 24))
+    {
+        printf("Invalid date for reservation: %02d.%02d. klo %02d\n", date[0], date[1], date[2]);
+        return;
+    }
 
     Reservation *prev = reservations;
     Reservation *temp = reservations->next;
@@ -75,8 +82,6 @@ void add_reservation(int n_args, char *token, Reservation *reservations)
         {
             if (date[0] == temp->month && date[1] == temp->day && date[2] == temp->hour)
             {
-                free(new_reservation->description);
-                free(new_reservation);
                 printf("Date already reserved. %02d.%02d. klo %02d\n", date[0], date[1], date[2]);
                 return;
             }
@@ -86,17 +91,7 @@ void add_reservation(int n_args, char *token, Reservation *reservations)
         temp = temp->next;
     }
 
-    // check that date is valid
-    if (!(date[0] >= 1 && date[0] <= 12 &&
-          date[1] >= 1 && date[1] <= 31 &&
-          date[2] >= 1 && date[2] <= 24))
-    {
-        free(new_reservation->description);
-        free(new_reservation);
-        printf("Invalid date for reservation: %02d.%02d. klo %02d\n", date[0], date[1], date[2]);
-        return;
-    }
-
+    Reservation *new_reservation = create_reservation();
     prev->next = new_reservation;
     strcpy(new_reservation->description, desc);
     new_reservation->month = date[0];
@@ -114,37 +109,39 @@ void add_reservation(int n_args, char *token, Reservation *reservations)
     printf("Added reservation: A %s %d %d %d\n", new_reservation->description, new_reservation->month, new_reservation->day, new_reservation->hour);
 }
 
-void delete_reservation(int n_args, char *token, Reservation *reservations)
+int find_reservation(Reservation *prev, Reservation *curr, int month, int day, int hour)
 {
-    int date[3];
-    Reservation *curr = reservations->next;
     if (curr == NULL)
     {
         printf("Empty list.\n");
-        return;
+        return 0;
     }
+    while (curr != NULL) // find reservation to delete
+    {
+        if (curr->month == month && curr->day == day && curr->hour == hour)
+        {
+            return 1;
+        }
+        prev = curr;
+        curr = curr->next;
+    }
+    printf("Reservation not found.\n");
+    return 0;
+}
+
+void delete_reservation(int n_args, char *token, Reservation *reservations)
+{
+    int date[3];
 
     if (!get_date(date, token, n_args))
     {
         return;
     }
 
-    int found = 0;
+    Reservation *curr = reservations->next;
     Reservation *prev = reservations;
-    while (curr != NULL) // find reservation to delete
+    if (!find_reservation(prev, curr, date[0], date[1], date[2]))
     {
-        if (curr->month == date[0] && curr->day == date[1] && curr->hour == date[2])
-        {
-            found = 1;
-            break;
-        }
-        prev = curr;
-        curr = curr->next;
-    }
-
-    if (!found)
-    {
-        printf("Reservation not found.\n");
         return;
     }
 
@@ -256,7 +253,7 @@ void perform_command(char *command, Reservation *reservations)
     token = strtok(command, " ");
     if (!(token[1] == 0x00 || token[1] == '\n'))
     {
-        printf("Invalid command!\n");
+        printf("Invalid command!\n\n");
         return;
     }
     switch (token[0])
