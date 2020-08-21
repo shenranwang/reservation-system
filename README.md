@@ -1,54 +1,57 @@
 # reservation-system
 
-Toteuta ajanvarausjärjestelmä, jonka avulla voi varata tunnin mittaisia tapaamisaikoja. Kullekin tunnille voi varata vain yhden ajan. Järjestelmästä tulee voida myös perua tapaamisia, ja sen tulee pystyä tulostamaan tapaamiset ajankohdan mukaisessa järjestyksessä. Tapaaminen kuvataan yhdellä merkkijonolla, ja kuvauksessa pitää varautua ainakin 20 merkin pituisiin merkkijonoihin, mutta voit olettaa että kuvaus ei sisällä välimerkkiä. Kuvausmerkkijonon ei tarvitse olla uniikki. Ajanvarausjärjestelmä kattaa vain yhden vuoden tapaamiset, joten vuosiluvusta ei tarvitse pitää kirjaa.
+Implement a system for scheduling that can be used to schedule one-hour meeting times. There should be only one reservation per hour. It should also be possible to cancel meetings and print them according to time. The meeting should be presented with one string description and at least 20 characters should be supported, but you can decide how to handle longer strings. You can assume that there are no white spaces in the string. The string for the meeting doesn’t have to unique. The system can only handle one year at the time so you don’t need to keep record of the year.
 
-## Ohjelmassa on seuraavat toiminnot:
+## The program has the following functions:
 
-* A kuvaus kuukausi päivä tunti: Lisää merkintä: Lisää merkinnän annetulla kuvauksella ajanvarausjärjestelmään. Tarkista että kuukausi, päivä ja tunti ovat järjellisiä. Voit kuitenkin päivän osalta olettaa (epärealistisesti), että kaikissa kuukausissa on sama määrä päiviä (enintään 31). Mikäli annettu ajankohta oli jo aiemmin varattu, toiminnosta tulee ilmoittaa virheilmoitus. Esim: A Hiustenleikkuu 3 26 14 varaa hiustenleikkuun 26.3. klo 14. (1 p)
+* A description month day hour: ***Add entry***: Add an entry with the given parameters to the scheduling system. Check that month, day and hour are reasonable. You can assume that every month would have 31 days. If the given time is already reserved, error message should be printed. For example, ```A Haircut 3 26 14``` would reserve a slot for haircutting on 26.3. at 14. The system should use 24-hour clock.
 
-* D kuukausi päivä tunti: Poista merkintä: Poistaa merkinnän annetulta ajankohdalta. Mikäli kyseisellä ajankohdalla ei ollut merkintää, tulostetaan virheilmoitus. Esim: D 3 26 14 poistaa edellä lisätyn merkinnän. (1 p)
+* D month day hour: ***Delete entry***: Delete an entry with the given parameters. If there is no entry with the given parameters, error message should be printed. For example, ```D 3 26 14``` would delete the entry added above.
 
-* L : Tulosta kalenteri: Tulostaa kaikki sen hetkiset varaukset merkintäajan mukaisessa järjestyksessä: varhaisin merkintä ensimmäisenä ja myöhäisin viimeisenä. Kustakin merkinnästä tulee näkyä kuvaus sekä ajankohta seuraavassa formaatissa: kuvaus XX.YY. klo ZZ, jossa XX on päivä, YY kuukausi ja ZZ kellonaika. Tämä toiminto on kahden pisteen arvoinen siten että jos tulostus on muuten oikein mutta väärässä järjestyksessä, tulee yksi piste, ja jos järjestys on lisäksi oikea, tulee toinen piste.
+* L : ***Output calendar***: Prints the current entries according to scheduled time. The earliest entry should the printed first and the latest last. For every entry, description and time should be printed in the following format: ```description XX.YY. at ZZ``` where XX is the day, YY is the month and ZZ is the time.
 
-* W tiedostonimi : Tallenna kalenteri: Tallentaa kaikki ajanvaraukset tiedostoon annetulla tiedostonnimellä (1 p)
+* W filename : ***Save calendar***: Writes the calendar to a file with the given filename.
 
-* O tiedostonimi : Lataa kalenteri: Lataa kalenterin tiedostosta, korvaten muistissa mahdollisesti aiemmin olleen kanlenterin (1 p)
+* O filename : ***Load calendar***: Loads the calendar from file, and replaces the existing calendar in memory.
 
-* Q : Poistu ohjelmasta: Poistuu ohjelmasta ja vapauttaa kaiken käytetyn muistin. Tämä toiminto on pakko toteuttaa, jotta havaitset mahdolliset muistivuodot.
+* Q : ***Exit program***: Exits program and releases all allocated memory.
 
-Näiden lisäksi tietysti pitää olla toimiva main-funktio, joka kysyy käyttäjältä toistuvasti syötteitä ja toimii niiden mukaisesti.
+In addition to the above commands, there should be a working main function that repeatedly asks commands from user and acts accordingly.
 
-Komennot alkavat siis yhdellä isolla kirjaimella ja sisältävät komennosta riippuen vaihtuvan määrän välilyönnillä eroteltuja parametreja. Alla esimerkki komentosarjasta:
+The commands start with one capital letter and may be followed by some number of parameters, separated by space, depending on the command. Below is an example of possible input sequence:
 
 ```
-A Hiustenleikkuu 3 26 14
-A Ohjelmointiluento 3 27 12
-A Ohjelmointilaskarit 3 27 14
-A Matikanluento 3 26 14
+A Haircut 3 26 14
+A C-lecture 3 27 12
+A C-exercise 3 27 14
+A Math_lecture 3 26 14
 D 3 26 14
-A Matikanluento 3 26 14
+A Math_lecture 3 26 14
 L
-W kalenteri
+W calendar
 Q
 ```
 
-Tämän seurauksena kalenteriin tulee kolme ensimmäistä tapahtumaa, mutta ensimmäinen Matikanluento-tapahtuma ei onnistu koska samalla paikalla on aiempi tapahtuma. Kun tämä on poistettu D-komennolla, matikanluennon lisääminen onnistuu. Lopuksi kalenteri tulostetaan ja tallennetaan levylle.
+After this, the calendar should save the first three entries since the first “Math_lecture” shouldn’t be succesful because the time is already reserved in previous entry. After the entry is deleted with the command “D”, adding the “Math_lecture” should be successful. After these, the calendar is printed and saved to the file “calendar”.
 
-Saat suunnitella ohjelman kuten haluat, mutta noudata selkeää funktiorakennetta ja käytä asianmukaisia nimiä funktioissa ja muuttujissa, jotta ohjelmaa on helppo lukea. Voit hyödyntää korkeintaan yhtä .h - otsaketiedostoa (joka on nimettävä “projekti.h”) ja yhtä .c - tiedostoa. Otsaketiedostoa ei ole pakko käyttää, ja voit tehdä kaiken yhteen c - tiedostoonkin.
+You can design your program in any way you want, but apply clear structure to logical functions, and name the functions and variables appropriately so that the program is easy to read. Implement the program in single .c file. You can also use one header file for your definitions, but you can include them also in the .c file and omit the header file.
 
-Muita yleisiä vaatimuksia ja ohjeita:
+Other general requirements and instructions:
 
-Testaamisen helpottamiseksi, edellä annettua komentoformaattia on noudatettava täsmällisesti.
+* To facilitate testing, the aforementioned command syntax must be precisely followed.
 
-Käytä dynaamista muistia säilön toteutukseen. Mielivaltaisen iso staattinen taulukko ei kelpaa. Dynaamisen muistin käytön tulee perustua varsinaiseen tilan tarpeeseen: malloc(1000000) ei ole hyväksyttävä ratkaisu.
+* You must use dynamic memory to implement the storage. A large static array is not acceptable. The dynamic memory allocation should be done based on the actual need: malloc(1000000) is not acceptable.
 
-Jokaisen komennon jälkeen on annettava tuloste, joka selkeästi kertoo onnistuiko toiminto vai ei.
+* After every command, the system must give an output that tells whether the command was succesful, or whether its execution failed.
 
-Voit olettaa maksimipituuden käyttäjän syöteriville, kunhan se on riittävän pitkä. Esimerkiksi 80 merkkiä on riittävä.
+* You can assume a maximum lenght for user input line. For example, 80 characters is sufficient.
 
-Selkeästi virheellisten syötekomentojen jälkeen pitää antaa virheilmoitus, eikä ohjelma ainakaan saa kaatua. Voit kuitenkin olettaa että nimet ja vastaavat syötemerkkijonot eivät sisällä välimerkkejä (eli välimerkit toimivat pelkästään kenttien erottimena).
+* Clearly erroneus commands must give on error message, and at least the program must not crash as result. However, you can assume that names and other strings not contain whitespaces (i.e., whitespaces can be assumed as command field separators).
 
 # main.c
+
+A version of main.c, where one can choose to start up the interactive program or take a file of commands as input.
+
 ```
 #include "projekti.c"
 
