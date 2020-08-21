@@ -18,6 +18,36 @@ Reservation *create_reservation()
     return reservation;
 }
 
+int get_date(int *date, char *token, int n_args)
+{
+    int i = 0;
+    do
+    {
+        token = strtok(NULL, " ");
+        // check if too few arguments (empty space at end of command causes strtok to interpret one extra arg "\n".)
+        if (token == NULL || token[0] == '\n')
+        {
+            printf("Invalid number of arguments, %d required.\n", n_args);
+            return 0;
+        }
+        int res = sscanf(token, " %d", &date[i++]);
+        if (!res)
+        {
+            printf("Invalid value entered as argument, requires integer value.\n");
+            return 0;
+        }
+    } while (token != NULL && i < 3);
+
+    // check that there is exactly four arguments (1 str, 3 int)
+    token = strtok(NULL, " ");
+    if (token != NULL || i != 3)
+    {
+        printf("Invalid number of arguments, %d required.\n", n_args);
+        return 0;
+    }
+    return 1;
+}
+
 void add_reservation(int n_args, char *token, Reservation *reservations)
 {
     char desc[MAX_DESC + 1];
@@ -29,22 +59,10 @@ void add_reservation(int n_args, char *token, Reservation *reservations)
     }
     strcpy(desc, token);
 
-    int i = 0;
-    do
+    if (!get_date(date, token, n_args))
     {
-        token = strtok(NULL, " ");
-        if (token == NULL || token[0] == '\n') // check if too few arguments
-        {
-            printf("Invalid number of arguments, %d required.\n", n_args);
-            return;
-        }
-        int res = sscanf(token, " %d", &date[i++]);
-        if (!res)
-        {
-            printf("Invalid value entered as argument, requires integer value.\n");
-            return;
-        }
-    } while (token != NULL && i < 3);
+        return;
+    }
 
     Reservation *new_reservation = create_reservation();
 
@@ -66,16 +84,6 @@ void add_reservation(int n_args, char *token, Reservation *reservations)
         }
         prev = temp;
         temp = temp->next;
-    }
-
-    // check that there is exactly four arguments (1 str, 3 int)
-    token = strtok(NULL, " ");
-    if (token != NULL || i != 3)
-    {
-        free(new_reservation->description);
-        free(new_reservation);
-        printf("Invalid number of arguments, %d required.\n", n_args);
-        return;
     }
 
     // check that date is valid
@@ -106,22 +114,6 @@ void add_reservation(int n_args, char *token, Reservation *reservations)
     printf("Added reservation: A %s %d %d %d\n", new_reservation->description, new_reservation->month, new_reservation->day, new_reservation->hour);
 }
 
-void delete_reservation_list(Reservation *reservations, int to_remove)
-{
-    while (reservations->next != NULL)
-    {
-        delete_reservation_list(reservations->next, 1);
-        reservations->next = NULL;
-    }
-
-    // to_remove depends on whether function is called in the context of quitting program or loading file.
-    if (to_remove)
-    {
-        free(reservations->description);
-        free(reservations);
-    }
-}
-
 void delete_reservation(int n_args, char *token, Reservation *reservations)
 {
     int date[3];
@@ -132,29 +124,8 @@ void delete_reservation(int n_args, char *token, Reservation *reservations)
         return;
     }
 
-    int i = 0;
-    do
+    if (!get_date(date, token, n_args))
     {
-        token = strtok(NULL, " ");
-        if (token == NULL) // check if too few arguments
-        {
-            printf("Invalid number of arguments, %d required.\n", n_args);
-            return;
-        }
-        int res = sscanf(token, " %d", &date[i++]);
-        if (!res)
-        {
-            printf("Invalid value entered as argument, requires integer value.\n");
-            return;
-        }
-    } while (token != NULL && i < 3);
-
-    // check that there is exactly four arguments (1 str, 3 int)
-    token = strtok(NULL, " ");
-    if (token != NULL || i != 3)
-    {
-        curr->next = NULL;
-        printf("Invalid number of arguments, %d required.\n", n_args);
         return;
     }
 
@@ -183,6 +154,22 @@ void delete_reservation(int n_args, char *token, Reservation *reservations)
     printf("Deleted reservation: D %d %d %d\n", date[0], date[1], date[2]);
 }
 
+void delete_reservation_list(Reservation *reservations, int to_remove)
+{
+    while (reservations->next != NULL)
+    {
+        delete_reservation_list(reservations->next, 1);
+        reservations->next = NULL;
+    }
+
+    // to_remove depends on whether function is called in the context of quitting program or loading file.
+    if (to_remove)
+    {
+        free(reservations->description);
+        free(reservations);
+    }
+}
+
 void print_reservations(Reservation *reservations)
 {
     Reservation *temp = reservations;
@@ -197,20 +184,29 @@ void print_reservations(Reservation *reservations)
     printf("%s %02d.%02d. klo %02d\n", temp->description, temp->day, temp->month, temp->hour);
 }
 
-void save_reservations(int n_args, char *token, Reservation *reservations)
+int get_filename(char *dest, char *token, int n_args)
 {
-    char filename[MAX_DESC + 1];
     token = strtok(NULL, " \n");
     if (token == NULL)
     {
         printf("Invalid number of arguments, %d required.\n", n_args);
-        return;
+        return 0;
     }
-    strcpy(filename, token);
+    strcpy(dest, token);
     token = strtok(NULL, " ");
     if (token != NULL)
     {
         printf("Invalid number of arguments, %d required.\n", n_args);
+        return 0;
+    }
+    return 1;
+}
+
+void save_reservations(int n_args, char *token, Reservation *reservations)
+{
+    char filename[MAX_DESC + 1];
+    if (!get_filename(filename, token, n_args))
+    {
         return;
     }
     FILE *fp = fopen(filename, "w");
@@ -233,17 +229,8 @@ void open_reservations(int n_args, char *token, Reservation *reservations)
 {
     char filename[MAX_DESC + 1];
     char command[MAX_LENGTH];
-    token = strtok(NULL, " \n");
-    if (token == NULL)
+    if (!get_filename(filename, token, n_args))
     {
-        printf("Invalid number of arguments, %d required.\n", n_args);
-        return;
-    }
-    strcpy(filename, token);
-    token = strtok(NULL, " ");
-    if (token != NULL)
-    {
-        printf("Invalid number of arguments, %d required.\n", n_args);
         return;
     }
     FILE *fp = fopen(filename, "r");
@@ -309,7 +296,7 @@ void run_program(FILE *fp)
     {
         fgets(command, MAX_LENGTH, fp);
         perform_command(command, reservations);
-    } while (!(command[0] == 'Q' && command[1] == '\n'));
+    } while (!(command[0] == 'Q' && (command[1] == '\n' || command[1] == 0x00))); // make there is '\n' or ' ' directly after Q before quitting program
 }
 
 int main()
