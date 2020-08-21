@@ -18,7 +18,7 @@ Reservation *create_reservation()
     return reservation;
 }
 
-void add_reservation(int n_args, char *token, Reservation *reservations) // TODO: Fix with invalid n_args
+void add_reservation(int n_args, char *token, Reservation *reservations)
 {
     char desc[MAX_DESC + 1];
     int date[3];
@@ -29,19 +29,24 @@ void add_reservation(int n_args, char *token, Reservation *reservations) // TODO
     }
     strcpy(desc, token);
 
-    Reservation *new_reservation = create_reservation();
-
     int i = 0;
     do
     {
         token = strtok(NULL, " ");
-        if (token == NULL)
+        if (token == NULL || token[0] == '\n')
         {
             printf("Invalid number of arguments, %d required.\n", n_args);
             return;
         }
-        sscanf(token, " %d", &date[i++]);
+        int res = sscanf(token, " %d", &date[i++]);
+        if (!res)
+        {
+            printf("Invalid value entered as argument, requires integer value.\n");
+            return;
+        }
     } while (token != NULL && i < 3);
+
+    Reservation *new_reservation = create_reservation();
 
     Reservation *prev = reservations;
     Reservation *temp = reservations->next;
@@ -134,7 +139,12 @@ void delete_reservation(int n_args, char *token, Reservation *reservations)
             printf("Invalid number of arguments, %d required.\n", n_args);
             return;
         }
-        sscanf(token, " %d", &date[i++]);
+        int res = sscanf(token, " %d", &date[i++]);
+        if (!res)
+        {
+            printf("Invalid value entered as argument, requires integer value.\n");
+            return;
+        }
     } while (token != NULL && i < 3);
 
     // check that there is exactly four arguments (1 str, 3 int)
@@ -296,5 +306,5 @@ void run_program(FILE *fp)
     {
         fgets(command, MAX_LENGTH, fp);
         perform_command(command, reservations);
-    } while (!(command[0] == 'Q' && command[1] == '\n')); // TODO: fix it
+    } while (!(command[0] == 'Q' && command[1] == '\n'));
 }
